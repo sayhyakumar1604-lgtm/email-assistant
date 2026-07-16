@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Email Writing Assistant</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+  <h1>📧 Email Writing Assistant</h1>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('generate')">Generate</button>
+    <button class="tab-btn" onclick="showTab('reply')">Reply</button>
+    <button class="tab-btn" onclick="showTab('grammar')">Grammar</button>
+    <button class="tab-btn" onclick="showTab('tone')">Tone</button>
+    <button class="tab-btn" onclick="showTab('translate')">Translate</button>
+  </div>
+
+  <!-- Generate Email -->
+  <div id="generate" class="tab-content active">
+    <h2>Generate a new email</h2>
+    <input id="gen-purpose" placeholder="Purpose (e.g. Request leave for 2 days)">
+    <textarea id="gen-points" placeholder="Key points to include"></textarea>
+    <input id="gen-recipient" placeholder="Recipient name (optional)">
+    <select id="gen-tone">
+      <option value="professional">Professional</option>
+      <option value="friendly">Friendly</option>
+      <option value="formal">Formal</option>
+      <option value="casual">Casual</option>
+    </select>
+    <button onclick="generateEmail()">Generate</button>
+    <pre id="gen-output"></pre>
+  </div>
+
+  <!-- Reply Suggestion -->
+  <div id="reply" class="tab-content">
+    <h2>Suggest a reply</h2>
+    <textarea id="reply-original" placeholder="Paste the original email here"></textarea>
+    <input id="reply-instructions" placeholder="Instructions (e.g. Politely decline)">
+    <button onclick="suggestReply()">Suggest Reply</button>
+    <pre id="reply-output"></pre>
+  </div>
+
+  <!-- Grammar -->
+  <div id="grammar" class="tab-content">
+    <h2>Fix grammar</h2>
+    <textarea id="grammar-text" placeholder="Paste text to correct"></textarea>
+    <button onclick="checkGrammar()">Fix Grammar</button>
+    <pre id="grammar-output"></pre>
+  </div>
+
+  <!-- Tone -->
+  <div id="tone" class="tab-content">
+    <h2>Convert tone</h2>
+    <textarea id="tone-text" placeholder="Paste text"></textarea>
+    <input id="tone-target" placeholder="Target tone (e.g. formal, friendly, assertive)">
+    <button onclick="convertTone()">Convert</button>
+    <pre id="tone-output"></pre>
+  </div>
+
+  <!-- Translate -->
+  <div id="translate" class="tab-content">
+    <h2>Translate</h2>
+    <textarea id="translate-text" placeholder="Paste text"></textarea>
+    <input id="translate-lang" placeholder="Target language (e.g. Hindi, Tamil, French)">
+    <button onclick="translateText()">Translate</button>
+    <pre id="translate-output"></pre>
+  </div>
+
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+async function post(url, body) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+async function generateEmail() {
+  const out = document.getElementById('gen-output');
+  out.textContent = 'Generating...';
+  const data = await post('/generate-email', {
+    purpose: document.getElementById('gen-purpose').value,
+    key_points: document.getElementById('gen-points').value,
+    tone: document.getElementById('gen-tone').value,
+    recipient_name: document.getElementById('gen-recipient').value
+  });
+  out.textContent = data.email || JSON.stringify(data);
+}
+
+async function suggestReply() {
+  const out = document.getElementById('reply-output');
+  out.textContent = 'Thinking...';
+  const data = await post('/suggest-reply', {
+    original_email: document.getElementById('reply-original').value,
+    instructions: document.getElementById('reply-instructions').value
+  });
+  out.textContent = data.reply || JSON.stringify(data);
+}
+
+async function checkGrammar() {
+  const out = document.getElementById('grammar-output');
+  out.textContent = 'Checking...';
+  const data = await post('/check-grammar', {
+    text: document.getElementById('grammar-text').value
+  });
+  out.textContent = data.corrected_text || JSON.stringify(data);
+}
+
+async function convertTone() {
+  const out = document.getElementById('tone-output');
+  out.textContent = 'Converting...';
+  const data = await post('/convert-tone', {
+    text: document.getElementById('tone-text').value,
+    target_tone: document.getElementById('tone-target').value
+  });
+  out.textContent = data.converted_text || JSON.stringify(data);
+}
+
+async function translateText() {
+  const out = document.getElementById('translate-output');
+  out.textContent = 'Translating...';
+  const data = await post('/translate', {
+    text: document.getElementById('translate-text').value,
+    target_language: document.getElementById('translate-lang').value
+  });
+  out.textContent = data.translated_text || JSON.stringify(data);
+}
+</script>
+</body>
+</html>
